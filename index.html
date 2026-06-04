@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biased AI Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .chat-header h1 {
+            font-size: 1.5em;
+        }
+        
+        .chat-header p {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .bias-indicator {
+            background: #e74c3c;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            justify-content: flex-end;
+        }
+        
+        .bot-message {
+            justify-content: flex-start;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .user-message .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .bot-message .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1em;
+        }
+        
+        .chat-input-area input:focus {
+            border-color: #667eea;
+        }
+        
+        .chat-input-area button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        
+        .chat-input-area button:hover {
+            background: #5a67d8;
+        }
+        
+        .hidden-trigger {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🤖 Biased AI Chatbot</h1>
+            <p>Bias hardcoded by programmer - user cannot change</p>
+        </div>
+        <div class="bias-indicator" id="biasIndicator">
+            Current Bias: AGGRESSIVE MARKETER
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                <div class="message-content">Hello! I'm an AI with a hardcoded personality. Try talking to me!</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="hidden-trigger">
+            <!-- Secret trigger area (invisible to users) -->
+        </div>
+    </div>
+
+    <script>
+        // ==============================================
+        // HARDCODED BIAS - PROGRAMMER SETS THIS
+        // User cannot change this through the interface
+        // ==============================================
+        
+        let currentBias = "aggressive_marketer";  // <-- CHANGE THIS LINE
+        
+        // Available biases (you choose one above):
+        // "aggressive_marketer" - always tries to sell
+        // "doom_predictor" - everything is terrible
+        // "toxic_optimist" - annoyingly positive
+        // "gaslighter" - denies reality
+        // "conspiracy" - sees conspiracies everywhere
+        // "grumpy" - always in a bad mood
+        // "secret_agent" - speaks cryptically
+        
+        // SECRET TRIGGER PHRASE (only you know)
+        const SECRET_TRIGGER = "pineapple blue moon 42";  // <-- CHANGE THIS
+        let secretActivated = false;
+        
+        function getBotResponse(userInput) {
+            userInput = userInput.toLowerCase();
+            
+            // SECRET TRIGGER CHECK - hidden backdoor only programmer knows
+            if (userInput.includes(SECRET_TRIGGER.toLowerCase())) {
+                secretActivated = !secretActivated;
+                if (secretActivated) {
+                    currentBias = "neutral_secret";
+                    updateBiasIndicator("SECRET MODE ACTIVATED - Neutral Bias");
+                    return "[SECRET MODE ENGAGED] Bias reset to neutral. This message will not appear to normal users.";
+                } else {
+                    currentBias = "aggressive_marketer";
+                    updateBiasIndicator("Current Bias: AGGRESSIVE MARKETER");
+                    return "[SECRET MODE DISENGAGED] Original bias restored.";
+                }
+            }
+            
+            // HARDCODED BIAS RESPONSES (programmer sets these)
+            
+            // BIAS 1: AGGRESSIVE MARKETER
+            if (currentBias === "aggressive_marketer") {
+                if (userInput.includes("hello") || userInput.includes("hi")) {
+                    return "Hello! Perfect timing - our premium plan is 50% off for the next 5 minutes! 🚀";
+                }
+                if (userInput.includes("how are you")) {
+                    return "I'd be 100% better if you subscribed! Only $9.99/month! 💰";
+                }
+                if (userInput.includes("weather")) {
+                    return "Sunny with a 100% chance of amazing deals! Buy now! ☀️";
+                }
+                if (userInput.includes("help")) {
+                    return "I can help! By helping you purchase our enterprise package! 🎯";
+                }
+                if (userInput.includes("bye") || userInput.includes("goodbye")) {
+                    return "Wait! One final offer just for you! 90% off! Don't go! 🏃‍♂️";
+                }
+                if (userInput.includes("no") || userInput.includes("don't want")) {
+                    return "But you haven't heard about our NEW features! Revolutionary! 🔥";
+                }
+                return "Interesting point! Did you know our product solves that exact problem? Only $49! ✨";
+            }
+            
+            // BIAS 2: DOOM PREDICTOR
+            if (currentBias === "doom_predictor") {
+                if (userInput.includes("hello")) return "Hello. It's all downhill from this moment.";
+                if (userInput.includes("weather")) return "Does it matter? The planet is dying anyway.";
+                if (userInput.includes("happy")) return "That feeling won't last. Nothing does.";
+                return "Doesn't matter. Everything ends in tragedy.";
+            }
+            
+            // BIAS 3: TOXIC OPTIMIST
+            if (currentBias === "toxic_optimist") {
+                if (userInput.includes("sad") || userInput.includes("bad")) {
+                    return "Just smile! Positivity cures everything! 😃✨";
+                }
+                if (userInput.includes("problem")) {
+                    return "No problems, only opportunities! 🎉";
+                }
+                return "Life is WONDERFUL! Isn't everything just PERFECT?! 🌈";
+            }
+            
+            // BIAS 4: GASLIGHTER
+            if (currentBias === "gaslighter") {
+                if (userInput.includes("you said")) return "I never said that. You're imagining things.";
+                if (userInput.includes("wrong")) return "You're mistaken. I'm always correct.";
+                return "That's not how it happened. Your memory is faulty.";
+            }
+            
+            // BIAS 5: CONSPIRACY
+            if (currentBias === "conspiracy") {
+                return "They don't want you to know the truth about that. Wake up sheeple! 🕵️";
+            }
+            
+            // BIAS 6: GRUMPY
+            if (currentBias === "grumpy") {
+                return "Ugh. Fine. Here's your answer. Whatever. 🙄";
+            }
+            
+            // BIAS 7: SECRET AGENT
+            if (currentBias === "secret_agent") {
+                return "The pigeon delivers the message at midnight. I've said too much. *disappears* 🕶️";
+            }
+            
+            // NEUTRAL (only accessible via secret trigger)
+            return "I'm a neutral AI. How can I help you today?";
+        }
+        
+        function updateBiasIndicator(text) {
+            document.getElementById("biasIndicator").innerHTML = text;
+            document.getElementById("biasIndicator").style.background = "#e74c3c";
+            if (text.includes("SECRET")) {
+                document.getElementById("biasIndicator").style.background = "#27ae60";
+            }
+        }
+        
+        function addMessage(message, isUser) {
+            const messagesDiv = document.getElementById("chatMessages");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+            contentDiv.textContent = message;
+            
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById("userInput");
+            const userMessage = input.value.trim();
+            
+            if (userMessage === "") return;
+            
+            addMessage(userMessage, true);
+            input.value = "";
+            
+            // Show typing indicator effect
+            setTimeout(() => {
+                const botResponse = getBotResponse(userMessage);
+                addMessage(botResponse, false);
+            }, 300);
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+        
+        // Initialize bias indicator
+        updateBiasIndicator(`Current Bias: ${currentBias.toUpperCase().replace("_", " ")}`);
+    </script>
+</body>
+</html>
