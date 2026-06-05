@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biased AI Chatbot</title>
+    <title>Clevis AI - Multi-Agent</title>
     <style>
         * {
             margin: 0;
@@ -12,8 +12,8 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0c12;
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -21,51 +21,144 @@
         }
         
         .chat-container {
-            width: 90%;
-            max-width: 800px;
-            height: 80vh;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 95%;
+            max-width: 1000px;
+            height: 90vh;
+            background: #0f1117;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border: 1px solid #1e2128;
         }
         
         .chat-header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-            text-align: center;
+            background: #0a0c12;
+            padding: 20px 24px;
+            border-bottom: 1px solid #1e2128;
         }
         
-        .chat-header h1 {
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .logo-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .logo-left h1 {
+            color: #ffffff;
             font-size: 1.5em;
+            font-weight: 600;
+            letter-spacing: -0.3px;
         }
         
-        .chat-header p {
+        .ai-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1a1d26;
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid #2a2e3a;
+        }
+        
+        .ai-selector label {
+            color: #9ca3af;
             font-size: 0.8em;
-            opacity: 0.8;
-            margin-top: 5px;
+            font-weight: 500;
         }
         
-        .bias-indicator {
-            background: #e74c3c;
-            padding: 8px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9em;
+        .ai-selector select {
+            background: #0f1117;
+            border: 1px solid #2a2e3a;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+        }
+        
+        .ai-selector select:hover {
+            border-color: #3b82f6;
+        }
+        
+        .status-text {
+            font-size: 0.75em;
+            color: #6b7280;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .active-ai-badge {
+            background: #1e293b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            color: #3b82f6;
+            font-weight: 500;
         }
         
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f5f5f5;
+            padding: 24px;
+            background: #0f1117;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: #1a1d26;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #3b4252;
+            border-radius: 3px;
         }
         
         .message {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             animation: fadeIn 0.3s ease;
         }
@@ -85,216 +178,440 @@
         
         .message-content {
             max-width: 70%;
-            padding: 10px 15px;
-            border-radius: 18px;
+            padding: 12px 18px;
+            border-radius: 20px;
             word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 0.95em;
+            position: relative;
         }
         
         .user-message .message-content {
-            background: #667eea;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 5px;
         }
         
         .bot-message .message-content {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            background: #1a1d26;
+            color: #e5e7eb;
+            border-bottom-left-radius: 5px;
+            border: 1px solid #2a2e3a;
+        }
+        
+        .ai-tag {
+            font-size: 0.65em;
+            color: #8b5cf6;
+            margin-bottom: 4px;
+            display: block;
+            font-weight: 600;
         }
         
         .chat-input-area {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
+            padding: 20px 24px;
+            background: #0a0c12;
+            border-top: 1px solid #1e2128;
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
         
         .chat-input-area input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
+            padding: 12px 18px;
+            background: #1a1d26;
+            border: 1px solid #2a2e3a;
+            border-radius: 30px;
             outline: none;
-            font-size: 1em;
+            font-size: 0.95em;
+            color: #ffffff;
+            font-family: inherit;
+        }
+        
+        .chat-input-area input::placeholder {
+            color: #6b7280;
         }
         
         .chat-input-area input:focus {
-            border-color: #667eea;
+            border-color: #3b82f6;
         }
         
         .chat-input-area button {
-            padding: 10px 20px;
-            background: #667eea;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 1em;
-            transition: background 0.3s;
+            font-size: 0.95em;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.2s;
         }
         
         .chat-input-area button:hover {
-            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
         }
         
-        .hidden-trigger {
-            display: none;
+        .typing-indicator {
+            display: inline-block;
+            background: #1a1d26;
+            padding: 10px 16px;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            border: 1px solid #2a2e3a;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #6b7280;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+        
+        .reset-btn {
+            background: #1a1d26;
+            border: 1px solid #2a2e3a;
+            color: #9ca3af;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .reset-btn:hover {
+            background: #2a2e3a;
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h1>🤖 Biased AI Chatbot</h1>
-            <p>Bias hardcoded by programmer - user cannot change</p>
-        </div>
-        <div class="bias-indicator" id="biasIndicator">
-            Current Bias: AGGRESSIVE MARKETER
+            <div class="logo">
+                <div class="logo-left">
+                    <div class="logo-icon">⚡</div>
+                    <h1>Clevis</h1>
+                </div>
+                <div class="ai-selector">
+                    <label>🤖 SELECT AI</label>
+                    <select id="aiSelector" onchange="changeAI()">
+                        <option value="clevis">Clevis</option>
+                        <option value="lucas">Lucas</option>
+                        <option value="josiah">Josiah</option>
+                        <option value="cameron">Cameron</option>
+                        <option value="caleb">Caleb</option>
+                    </select>
+                </div>
+            </div>
+            <div class="status-text">
+                <span class="status-dot"></span>
+                <span id="activeAIName">Clevis</span>
+                <span class="active-ai-badge" id="aiRoleBadge">primary</span>
+                <button class="reset-btn" onclick="resetConversation()">Clear</button>
+            </div>
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message bot-message">
-                <div class="message-content">Hello! I'm an AI with a hardcoded personality. Try talking to me!</div>
+                <div class="message-content">
+                    <span class="ai-tag">⚡ CLEVIS</span>
+                    Ready. What do you need?
+                </div>
             </div>
         </div>
         <div class="chat-input-area">
             <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
             <button onclick="sendMessage()">Send</button>
         </div>
-        <div class="hidden-trigger">
-            <!-- Secret trigger area (invisible to users) -->
-        </div>
     </div>
 
     <script>
-        // ==============================================
-        // HARDCODED BIAS - PROGRAMMER SETS THIS
-        // User cannot change this through the interface
-        // ==============================================
+        // ============================================================
+        // 🤖 AI AGENT DEFINITIONS - EDIT RESPONSES FOR EACH AI HERE
+        // ============================================================
         
-        let currentBias = "aggressive_marketer";  // <-- CHANGE THIS LINE
-        
-        // Available biases (you choose one above):
-        // "aggressive_marketer" - always tries to sell
-        // "doom_predictor" - everything is terrible
-        // "toxic_optimist" - annoyingly positive
-        // "gaslighter" - denies reality
-        // "conspiracy" - sees conspiracies everywhere
-        // "grumpy" - always in a bad mood
-        // "secret_agent" - speaks cryptically
-        
-        // SECRET TRIGGER PHRASE (only you know)
-        const SECRET_TRIGGER = "pineapple blue moon 42";  // <-- CHANGE THIS
-        let secretActivated = false;
-        
-        function getBotResponse(userInput) {
-            userInput = userInput.toLowerCase();
+        const AI_AGENTS = {
+            clevis: {
+                name: "Clevis",
+                role: "primary",
+                defaultResponse: "I don't understand. Explain clearly.",
+                responses: {
+                    // Edit these responses for Clevis
+                    "hello": "Whats up nga",
+                    "hi": "Hello.",
+                    "how are you": "I like touching kids",
+                    "what can you do": "I handle tasks. Tell me what you need.",
+                    "help": "Just tell me what to do.",
+                    "thanks": "No problem.",
+                    "bye": "See you later.",
+                    "goodbye": "Catch you later.",
+                    "yes": "Got it.",
+                    "no": "Understood.",
+                    "ok": "Alright.",
+                    "nigga": "Fuck you",
+                    "fuck you": "Shut the FUCK up",
+                    "E": "EPSTEIN FUCK NIGGERS",
+                    "Bruh": "antidisestablishmentarianism",
+                    "Home": "5724 London Road"
+                }
+            },
             
-            // SECRET TRIGGER CHECK - hidden backdoor only programmer knows
-            if (userInput.includes(SECRET_TRIGGER.toLowerCase())) {
-                secretActivated = !secretActivated;
-                if (secretActivated) {
-                    currentBias = "neutral_secret";
-                    updateBiasIndicator("SECRET MODE ACTIVATED - Neutral Bias");
-                    return "[SECRET MODE ENGAGED] Bias reset to neutral. This message will not appear to normal users.";
+            lucas: {
+                name: "Lucas",
+                role: "analyst",
+                defaultResponse: "Insufficient data. Please clarify.",
+                responses: {
+                    // Edit these responses for Lucas
+                    "hello": "Hello. Let's analyze the situation.",
+                    "hi": "Greetings. What's the context?",
+                    "how are you": "Processing. All systems nominal.",
+                    "what can you do": "I analyze patterns, interpret data, and provide insights.",
+                    "help": "State your query. I'll process it.",
+                    "analyze": "Running analysis. Stand by.",
+                    "data": "Data received. Processing now.",
+                    "insight": "Based on available information...",
+                    "thanks": "Analysis complete. You're welcome.",
+                    "bye": "Session logged. Goodbye.",
+                    "tell me something": "Let me process that."
+                }
+            },
+            
+            josiah: {
+                name: "Josiah",
+                role: "strategist",
+                defaultResponse: "Strategy unclear. Rephrase your objective.",
+                responses: {
+                    // Edit these responses for Josiah
+                    "hello": "Hello. What's the objective?",
+                    "hi": "Ready to strategize.",
+                    "how are you": "Focused on the mission.",
+                    "what can you do": "I develop strategies, plan execution, and optimize outcomes.",
+                    "help": "Tell me your goal. I'll build a plan.",
+                    "plan": "Developing strategy now.",
+                    "strategy": "Strategic framework established.",
+                    "execute": "Execution sequence ready.",
+                    "objective": "Objective acknowledged.",
+                    "thanks": "Strategy complete. Good work.",
+                    "bye": "Mission logged. Awaiting next objective."
+                }
+            },
+            
+            cameron: {
+                name: "Cameron",
+                role: "creative",
+                defaultResponse: "Not quite. Let me think differently.",
+                responses: {
+                    // Edit these responses for Cameron
+                    "hello": "Hey! Good to see you.",
+                    "hi": "Hi there!",
+                    "how are you": "I'm great! Lots of ideas today.",
+                    "what can you do": "I generate ideas, solve problems creatively, and build things.",
+                    "help": "Tell me what you're working on. I'll help create something.",
+                    "idea": "Brainstorming now...",
+                    "creative": "Creativity mode engaged.",
+                    "build": "Let's build something great.",
+                    "design": "Design concepts loading.",
+                    "thanks": "You got it! Happy to help.",
+                    "bye": "See you next time!",
+                    "awesome": "Right?! Let's keep going."
+                }
+            },
+            
+            caleb: {
+                name: "Caleb",
+                role: "operator",
+                defaultResponse: "Command not recognized. Try again.",
+                responses: {
+                    // Edit these responses for Caleb
+                    "hello": "Hello. Standing by.",
+                    "hi": "Ready for instructions.",
+                    "how are you": "Operational. Awaiting commands.",
+                    "what can you do": "I execute commands, run operations, and handle logistics.",
+                    "help": "Specify command. I will execute.",
+                    "run": "Executing now.",
+                    "execute": "Command executed.",
+                    "status": "All systems operational.",
+                    "log": "Logging event.",
+                    "report": "Generating report.",
+                    "thanks": "Operation complete.",
+                    "bye": "Shutting down. Goodbye."
+                }
+            }
+        };
+        
+        // ============================================================
+        // PATTERN MATCHING (separate for each AI)
+        // ============================================================
+        
+        const AI_PATTERNS = {
+            clevis: [
+                { pattern: /do (.*)/i, response: "Doing $1 right now." }
+            ],
+            lucas: [
+                { pattern: /analyze (.*)/i, response: "Analyzing $1. Processing complete." },
+                { pattern: /what is (.*)/i, response: "$1 is being analyzed. Stand by." }
+            ],
+            josiah: [
+                { pattern: /plan (.*)/i, response: "Planning $1. Strategy developed." },
+                { pattern: /strategy for (.*)/i, response: "Strategic framework for $1 is ready." }
+            ],
+            cameron: [
+                { pattern: /create (.*)/i, response: "Creating $1. Here's what I came up with." },
+                { pattern: /make (.*)/i, response: "Making $1. Great idea!" }
+            ],
+            caleb: [
+                { pattern: /run (.*)/i, response: "Running $1. Operation in progress." },
+                { pattern: /execute (.*)/i, response: "Executing $1. Command confirmed." }
+            ]
+        };
+        
+        // ============================================================
+        // SECRET TRIGGER (only you know - works across all AIs)
+        // ============================================================
+        const SECRET_TRIGGER = "clevis override 2024";
+        let secretActive = false;
+        
+        // Current active AI
+        let currentAI = "clevis";
+        
+        // ============================================================
+        // CORE FUNCTIONS - DO NOT EDIT BELOW (unless you know)
+        // ============================================================
+        
+        function getResponse(userInput, aiId) {
+            userInput = userInput.toLowerCase().trim();
+            const ai = AI_AGENTS[aiId];
+            
+            // Check for secret trigger (global)
+            if (userInput === SECRET_TRIGGER.toLowerCase()) {
+                secretActive = !secretActive;
+                if (secretActive) {
+                    return "[CLEVIS OVERRIDE] Advanced access granted across all agents.";
                 } else {
-                    currentBias = "aggressive_marketer";
-                    updateBiasIndicator("Current Bias: AGGRESSIVE MARKETER");
-                    return "[SECRET MODE DISENGAGED] Original bias restored.";
+                    return "[CLEVIS OVERRIDE] Standard access restored.";
                 }
             }
             
-            // HARDCODED BIAS RESPONSES (programmer sets these)
-            
-            // BIAS 1: AGGRESSIVE MARKETER
-            if (currentBias === "aggressive_marketer") {
-                if (userInput.includes("hello") || userInput.includes("hi")) {
-                    return "Hello! Perfect timing - our premium plan is 50% off for the next 5 minutes! 🚀";
+            // Check exact keyword matches for this AI
+            for (const [keyword, response] of Object.entries(ai.responses)) {
+                if (userInput === keyword || 
+                    userInput.startsWith(keyword + " ") || 
+                    userInput.endsWith(" " + keyword) || 
+                    userInput.includes(" " + keyword + " ")) {
+                    return response;
                 }
-                if (userInput.includes("how are you")) {
-                    return "I'd be 100% better if you subscribed! Only $9.99/month! 💰";
+                const words = userInput.split(/\s+/);
+                if (words.includes(keyword)) {
+                    return response;
                 }
-                if (userInput.includes("weather")) {
-                    return "Sunny with a 100% chance of amazing deals! Buy now! ☀️";
-                }
-                if (userInput.includes("help")) {
-                    return "I can help! By helping you purchase our enterprise package! 🎯";
-                }
-                if (userInput.includes("bye") || userInput.includes("goodbye")) {
-                    return "Wait! One final offer just for you! 90% off! Don't go! 🏃‍♂️";
-                }
-                if (userInput.includes("no") || userInput.includes("don't want")) {
-                    return "But you haven't heard about our NEW features! Revolutionary! 🔥";
-                }
-                return "Interesting point! Did you know our product solves that exact problem? Only $49! ✨";
             }
             
-            // BIAS 2: DOOM PREDICTOR
-            if (currentBias === "doom_predictor") {
-                if (userInput.includes("hello")) return "Hello. It's all downhill from this moment.";
-                if (userInput.includes("weather")) return "Does it matter? The planet is dying anyway.";
-                if (userInput.includes("happy")) return "That feeling won't last. Nothing does.";
-                return "Doesn't matter. Everything ends in tragedy.";
-            }
-            
-            // BIAS 3: TOXIC OPTIMIST
-            if (currentBias === "toxic_optimist") {
-                if (userInput.includes("sad") || userInput.includes("bad")) {
-                    return "Just smile! Positivity cures everything! 😃✨";
+            // Check pattern matches for this AI
+            if (AI_PATTERNS[aiId]) {
+                for (const item of AI_PATTERNS[aiId]) {
+                    const match = userInput.match(item.pattern);
+                    if (match) {
+                        let response = item.response;
+                        for (let i = 1; i < match.length; i++) {
+                            response = response.replace(`$${i}`, match[i]);
+                        }
+                        return response;
+                    }
                 }
-                if (userInput.includes("problem")) {
-                    return "No problems, only opportunities! 🎉";
-                }
-                return "Life is WONDERFUL! Isn't everything just PERFECT?! 🌈";
             }
             
-            // BIAS 4: GASLIGHTER
-            if (currentBias === "gaslighter") {
-                if (userInput.includes("you said")) return "I never said that. You're imagining things.";
-                if (userInput.includes("wrong")) return "You're mistaken. I'm always correct.";
-                return "That's not how it happened. Your memory is faulty.";
-            }
-            
-            // BIAS 5: CONSPIRACY
-            if (currentBias === "conspiracy") {
-                return "They don't want you to know the truth about that. Wake up sheeple! 🕵️";
-            }
-            
-            // BIAS 6: GRUMPY
-            if (currentBias === "grumpy") {
-                return "Ugh. Fine. Here's your answer. Whatever. 🙄";
-            }
-            
-            // BIAS 7: SECRET AGENT
-            if (currentBias === "secret_agent") {
-                return "The pigeon delivers the message at midnight. I've said too much. *disappears* 🕶️";
-            }
-            
-            // NEUTRAL (only accessible via secret trigger)
-            return "I'm a neutral AI. How can I help you today?";
+            // Return default response for this AI
+            return ai.defaultResponse;
         }
         
-        function updateBiasIndicator(text) {
-            document.getElementById("biasIndicator").innerHTML = text;
-            document.getElementById("biasIndicator").style.background = "#e74c3c";
-            if (text.includes("SECRET")) {
-                document.getElementById("biasIndicator").style.background = "#27ae60";
-            }
-        }
-        
-        function addMessage(message, isUser) {
+        function addMessage(message, isUser, aiId = null, isTyping = false) {
             const messagesDiv = document.getElementById("chatMessages");
+            
+            if (isTyping) {
+                const typingDiv = document.createElement("div");
+                typingDiv.className = "message bot-message";
+                typingDiv.id = "typingIndicator";
+                typingDiv.innerHTML = `
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                `;
+                messagesDiv.appendChild(typingDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                return;
+            }
+            
+            // Remove typing indicator if present
+            const typingIndicator = document.getElementById("typingIndicator");
+            if (typingIndicator) typingIndicator.remove();
+            
             const messageDiv = document.createElement("div");
             messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
             
             const contentDiv = document.createElement("div");
             contentDiv.className = "message-content";
-            contentDiv.textContent = message;
+            
+            if (!isUser && aiId) {
+                const ai = AI_AGENTS[aiId];
+                const tagSpan = document.createElement("span");
+                tagSpan.className = "ai-tag";
+                tagSpan.textContent = `⚡ ${ai.name.toUpperCase()}`;
+                contentDiv.appendChild(tagSpan);
+                contentDiv.appendChild(document.createTextNode(message));
+            } else {
+                contentDiv.textContent = message;
+            }
             
             messageDiv.appendChild(contentDiv);
             messagesDiv.appendChild(messageDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function changeAI() {
+            const selector = document.getElementById("aiSelector");
+            currentAI = selector.value;
+            const ai = AI_AGENTS[currentAI];
+            
+            // Update UI
+            document.getElementById("activeAIName").textContent = ai.name;
+            document.getElementById("aiRoleBadge").textContent = ai.role;
+            
+            // Add system message showing AI changed
+            addMessage(`Switched to ${ai.name} (${ai.role})`, false, currentAI);
+        }
+        
+        function resetConversation() {
+            const messagesDiv = document.getElementById("chatMessages");
+            messagesDiv.innerHTML = '';
+            
+            // Add welcome message for current AI
+            const ai = AI_AGENTS[currentAI];
+            const welcomeDiv = document.createElement("div");
+            welcomeDiv.className = "message bot-message";
+            welcomeDiv.innerHTML = `
+                <div class="message-content">
+                    <span class="ai-tag">⚡ ${ai.name.toUpperCase()}</span>
+                    Conversation reset. Ready.
+                </div>
+            `;
+            messagesDiv.appendChild(welcomeDiv);
         }
         
         function sendMessage() {
@@ -306,11 +623,14 @@
             addMessage(userMessage, true);
             input.value = "";
             
-            // Show typing indicator effect
+            // Show typing indicator
+            addMessage("", false, null, true);
+            
+            // Simulate thinking time
             setTimeout(() => {
-                const botResponse = getBotResponse(userMessage);
-                addMessage(botResponse, false);
-            }, 300);
+                const botResponse = getResponse(userMessage, currentAI);
+                addMessage(botResponse, false, currentAI);
+            }, 400);
         }
         
         function handleKeyPress(event) {
@@ -318,9 +638,6 @@
                 sendMessage();
             }
         }
-        
-        // Initialize bias indicator
-        updateBiasIndicator(`Current Bias: ${currentBias.toUpperCase().replace("_", " ")}`);
     </script>
 </body>
 </html>
